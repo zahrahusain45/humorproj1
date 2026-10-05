@@ -77,4 +77,4 @@ The supplied PM feedback is implemented: email only, no profile page/avatar, ima
 
 ## Current external setup
 
-Implementation, migration, and automated tests are prepared locally. Do not consider the assignment deployed until the migration is applied to Supabase, a Gemini key is configured, email redirects are verified, the final commit is deployed to Vercel, and two real signed-in users complete generation/voting checks.
+The migration is applied to the existing live Supabase project. All five public tables have RLS enabled; live anonymous Data API reads are denied on every table. Email signups are enabled, the production callback is allowed, and the 127.0.0.1 preview callback has been added. Automated tests and the production build pass. Deployment still needs Vercel CLI authorization, a Production GEMINI_API_KEY, the final commit deployed, and generation/voting checked with two real signed-in users. GitHub push currently fails because github.com cannot be reached, so direct Vercel CLI deployment is being prepared.
