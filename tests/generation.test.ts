@@ -31,3 +31,13 @@ test("mutations reject cross-origin, non-JSON, and oversized requests", async ()
   await assert.rejects(() => readSmallJson(new Request("https://app.example", { method: "POST", body: "hi" })));
   await assert.rejects(() => readSmallJson(new Request("https://app.example", { method: "POST", headers: { "content-type": "application/json" }, body: "x".repeat(4097) })));
 });
+
+test("photo input validates format, bytes and size before AI submission", () => {
+ const input = { prompt: "My campus photo", style: "Deadpan" };
+ assert.throws(() => validateGeneration({...input, photo: "data:image/svg+xml;base64,PHN2Zz4="}));
+ assert.throws(() => validateGeneration({...input, photo: "data:image/png;base64,aGVsbG8="}));
+ assert.throws(() => validateGeneration({...input, photo: "data:image/png;base64," + "a".repeat(1400000)}));
+ const photo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=";
+ const result = validateGeneration({...input, photo});
+ assert.equal(result.scene.id, "upload"); assert.equal(result.photo?.url, photo);
+});

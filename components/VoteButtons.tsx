@@ -18,7 +18,7 @@ export default function VoteButtons({ captionId, initialVote, own }: { captionId
     } catch { setError("Could not connect. Try again."); }
     finally { setBusy(false); }
   }
-  if (own) return <p className="text-xs text-zinc-500">Your caption · let the community decide.</p>;
+  if (own) return <div><div className="flex gap-2"><button disabled className="vote-button">↑ Funny</button><button disabled className="vote-button">↓ Not quite</button></div><p className="mt-2 text-xs text-zinc-500">Other members can vote on your caption. You cannot vote on your own.</p></div>;
   const locked = busy || vote !== null;
   return <div>
     <div className="flex flex-wrap gap-2">

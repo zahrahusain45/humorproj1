@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in to create a caption." }, { status: 401 });
   let input: ReturnType<typeof validateGeneration>;
-  try { input = validateGeneration(await readSmallJson(request)); }
+  try { input = validateGeneration(await readSmallJson(request, 1404096)); }
   catch (error) { return Response.json({ error: (error as Error).message }, { status: 400 }); }
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return Response.json({ error: "Caption generation is not ready yet. Please try again later." }, { status: 503 });
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig }),
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: "user", parts: [{ text: prompt }, ...(input.photo ? [{ inlineData: { mimeType: input.photo.mimeType, data: input.photo.data } }] : [])] }], generationConfig }),
       signal: AbortSignal.timeout(40000),
       cache: "no-store",
     });
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   }
   const { data, error } = await supabase.from("humor_captions").insert({
     user_id: user.id, request_id: requestId, scene_id: input.scene.id, image_path: input.scene.image,
-    caption, user_prompt: input.prompt, prompt, system_prompt: systemPrompt, style: input.style,
+    image_data_url: input.photo?.url ?? null, caption, user_prompt: input.prompt, prompt, system_prompt: systemPrompt, style: input.style,
     model, generation_config: generationConfig,
   }).select("id, caption").single();
   if (error) return Response.json({ error: "Your caption could not be saved. Please try again later." }, { status: 500 });

@@ -3,7 +3,7 @@ import type { Caption, FeedCaption, VoteCount } from "./captions";
 
 export async function loadFeed(userId: string, options: { mine?: boolean; captionId?: string } = {}): Promise<{ captions: FeedCaption[]; error: boolean }> {
   const supabase = await createClient();
-  let query = supabase.from("humor_captions").select("id,user_id,scene_id,caption,user_prompt,style,model,created_at").order("created_at", { ascending: false }).limit(60);
+  let query = supabase.from("humor_captions").select("id,user_id,scene_id,image_data_url,caption,user_prompt,style,model,created_at").order("created_at", { ascending: false }).limit(60);
   if (options.mine) query = query.eq("user_id", userId);
   if (options.captionId) query = query.eq("id", options.captionId);
   const { data, error } = await query;

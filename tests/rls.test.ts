@@ -19,6 +19,7 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
     grant all on public.movies, public.profiles to anon, authenticated;
     insert into auth.users values ('${alice}'), ('${bob}'), ('${charlie}');`);
   await db.exec(await readFile(new URL("../supabase/migrations/202610050001_humor_generation_and_votes.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610050002_photo_uploads.sql", import.meta.url), "utf8"));
   async function asUser(id: string | null) {
     await db.exec(`reset role; set role ${id ? "authenticated" : "anon"};`);
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id ?? ""]);

@@ -2,6 +2,7 @@ export type Caption = {
   id: string;
   user_id: string;
   scene_id: string;
+  image_data_url: string | null;
   caption: string;
   user_prompt: string;
   style: string;
