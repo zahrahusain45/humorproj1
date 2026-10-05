@@ -25,7 +25,22 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+  const isPublic = pathname === "/login" || pathname === "/auth/callback";
+  if ((!user && !isPublic) || (user && pathname === "/login")) {
+    if (!user && pathname.startsWith("/api/")) {
+      const unauthorized = NextResponse.json({ error: "Please sign in." }, { status: 401 });
+      response.cookies.getAll().forEach(cookie => unauthorized.cookies.set(cookie));
+      return unauthorized;
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = user ? "/" : "/login";
+    url.search = "";
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
+    return redirect;
+  }
   return response;
 }
 

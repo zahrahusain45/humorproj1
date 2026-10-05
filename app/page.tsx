@@ -1,46 +1,26 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import Image from "next/image";
+import { requireUser } from "@/lib/auth";
+import { loadFeed } from "@/lib/feed";
+import { getDailyPrompt, getScene } from "@/lib/scenes";
+import CaptionCard from "@/components/CaptionCard";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const { data: movies, error } = await supabase
-    .from("movies")
-    .select("*")
-    .order("release_date", { ascending: true });
-
-  if (error) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center text-white">
-        <p>Error loading movies: {error.message}</p>
-      </div>
-    );
-  }
-
-  return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-16 text-white">
-      <h1 className="mb-2 text-4xl font-bold tracking-tight">New Movies This Month</h1>
-      <p className="mb-10 text-zinc-400">What&apos;s hitting theaters and streaming.</p>
-      <div className="flex flex-col gap-4">
-        {movies?.map((movie) => (
-          <div
-            key={movie.id}
-            className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:bg-white/[0.07]"
-          >
-            <div>
-              <p className="text-xl font-semibold">{movie.title}</p>
-              <p className="mt-1 text-sm text-zinc-400">
-                {new Date(movie.release_date + "T00:00:00").toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-            <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-zinc-300">
-              {movie.platform}
-            </span>
-          </div>
-        ))}
-      </div>
-    </main>
-  );
+export default async function Home({ searchParams }: { searchParams: Promise<{ sort?: string; caption?: string }> }) {
+  const user = await requireUser();
+  const { sort, caption: captionId } = await searchParams;
+  const validId = captionId && /^[0-9a-f-]{36}$/i.test(captionId) ? captionId : undefined;
+  const { captions, error } = await loadFeed(user.id, { captionId: validId });
+  const top = sort === "top";
+  if (top) captions.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
+  const daily = getDailyPrompt();
+  const scene = getScene(daily.sceneId)!;
+  return <main className="mx-auto w-full max-w-5xl px-6 py-12 text-white">
+    <div className="flex flex-wrap items-end justify-between gap-6"><div><p className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">Campus chaos. NYC energy.</p><h1 className="text-4xl font-bold tracking-tight sm:text-5xl">The joke’s on all of us.</h1><p className="mt-4 max-w-xl text-zinc-400">AI writes the captions. You decide which ones belong in the group chat.</p></div><Link href="/create" className="rounded-xl bg-amber-300 px-5 py-3 font-semibold text-black">Create a caption ↗</Link></div>
+    {!validId && <section aria-label="Daily caption challenge" className="my-10 grid overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 sm:grid-cols-[180px_1fr]">
+      <Image src={scene.image} alt={scene.alt} width={600} height={360} className="h-full max-h-48 w-full object-cover" />
+      <div className="p-5"><p className="text-xs font-semibold uppercase tracking-widest text-amber-300">Today’s prompt · {daily.date}</p><h2 className="mt-2 text-lg font-medium">{daily.prompt}</h2><Link href="/create?daily=1" className="mt-3 inline-block text-sm font-semibold text-amber-300">Give it your spin →</Link></div>
+    </section>}
+    <div className="mb-6 mt-10 flex items-center justify-between gap-4"><h2 className="text-xl font-semibold">{validId ? "Your caption" : "Community captions"}</h2><nav aria-label="Feed sorting" className="flex gap-2 text-sm"><Link href="/" aria-current={!top && !validId ? "page" : undefined} className={`rounded-full px-4 py-2 ${!top && !validId ? "bg-white text-black" : "text-zinc-400"}`}>Newest</Link><Link href="/?sort=top" aria-current={top ? "page" : undefined} className={`rounded-full px-4 py-2 ${top ? "bg-white text-black" : "text-zinc-400"}`}>Top</Link></nav></div>
+    {error ? <div role="alert" className="rounded-2xl border border-white/10 p-8 text-zinc-400">The caption feed is temporarily unavailable. Please try again later.</div> : captions.length ? <><div className="grid gap-6 sm:grid-cols-2">{captions.map(caption => <CaptionCard key={caption.id} caption={caption} userId={user.id} />)}</div>{!validId && <p className="mt-6 text-center text-xs text-zinc-500">{top ? "Highest scores among the latest 60 captions." : "Showing the latest 60 captions."}</p>}</> : <section className="rounded-2xl border border-dashed border-white/15 px-6 py-16 text-center"><h3 className="text-xl font-semibold">{validId ? "Caption not found" : "Be the first to land a joke."}</h3><p className="mx-auto mt-3 max-w-md text-zinc-400">{validId ? "Browse the feed to find more captions." : "Pick a picture, describe your moment, and let AI find the punchline. Your caption will appear here for the community to rate."}</p><Link href={validId ? "/" : "/create"} className="mt-6 inline-block font-semibold text-amber-300">{validId ? "Back to the feed →" : "Create the first caption →"}</Link></section>}
+  </main>;
 }

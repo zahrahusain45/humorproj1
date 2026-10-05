@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Humor Project — Assignment 4
 
-## Getting Started
+An email-only, authenticated caption app for college students navigating campus life and New York City. Choose a local illustration, describe a moment, and ask Gemini for a funny caption. Each generated caption posts to the member feed; other members can upvote or downvote it once.
 
-First, run the development server:
+## Intentional product choices
 
-```bash
+- Sam's world: subway delays, late nights in the library, dorm life, and NYC prices. The picture library keeps creation quick and consistent without requiring a personal photo upload.
+- A daily prompt changes at midnight in New York and gives people a reason to return.
+- Newest and Top sorting help members discover content. Top ranks the latest 60 captions by upvotes minus downvotes; it is not an all-time leaderboard.
+- Users control the moment and humor style rather than accepting a generic caption. Their prompt is visible beside the caption so others can understand the joke.
+- One vote per member per caption, no self-votes, and permanent vote choices keep scores meaningful.
+- A 10-attempt daily cap protects AI usage. Failed provider attempts count toward the cap. No fake AI captions are seeded.
+- No profile page, avatar, names, movie data, or public content pages.
+
+## Existing stack
+
+Next.js, Supabase (existing project), Gemini (server-only REST API), and Vercel (existing project connected to GitHub). No service-role key is used by the app.
+
+## Database setup
+
+Run `supabase/migrations/202610050001_humor_generation_and_votes.sql` once in your existing Supabase project's SQL Editor. The transaction creates:
+
+- `humor_captions`: caption, owner, image scene/path, original user prompt, full model prompt, system prompt, model, settings, and timestamp.
+- `humor_votes`: voter, caption foreign key, and +1/-1 vote. A unique constraint prevents duplicate votes.
+- `humor_generation_requests`: private per-user reservations used for an atomic daily limit.
+
+RLS is enabled for every existing table in `public`. Existing `movies` and `profiles` data is retained but access through anon/authenticated Data API roles is revoked because the new app does not use those tables. Other existing tables keep their policies and must be audited using the queries at the end of the migration. Supabase-managed `auth` and `storage` schemas are not changed.
+
+Members can read captions, insert captions only as themselves with a recent reservation, read only their own votes, and insert only their own votes on another user's caption. There are no update/delete grants. Created IDs/timestamps cannot be provided by Data API clients. `humor_vote_counts` exposes only totals for at most 60 requested captions and checks authentication; it uses a narrowly scoped security-definer function so individual votes remain private. `reserve_humor_generation` checks authentication and serializes reservations per user to enforce the daily cap.
+
+## Environment and authentication
+
+Use `.env.example` as a guide, preserving your existing Supabase values. Set `GEMINI_API_KEY` in `.env.local` and Vercel Environment Variables (Production and Preview). Never prefix it with `NEXT_PUBLIC_` or commit it. `GEMINI_MODEL` defaults to `gemini-2.5-flash-lite` and can be changed to an available Gemini text model.
+
+In Supabase Authentication:
+
+1. Enable the Email provider and new-user signups if students should be able to join.
+2. Set the Site URL to the production app URL.
+3. Add the production and local `/auth/callback` URLs to the allowed redirects. Add the actual commit deployment URL before testing that deployment. This local preview runs on `http://127.0.0.1:3000`, so allow `http://127.0.0.1:3000/auth/callback` as well as `http://localhost:3000/auth/callback` if you use both.
+4. Keep the default magic-link template using `{{ .ConfirmationURL }}`. A custom SSR template can instead use `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`.
+5. Open the emailed link in the same browser that requested it (PKCE flow).
+
+Only `/login` and `/auth/callback` are public application routes. Logged-out content requests redirect to `/login`; unauthenticated API mutations return 401. Server pages and each mutation verify the Supabase user independently. Static image assets remain public to render the interface. POST mutations require a matching Origin and a small JSON body.
+
+## Run and validate
+
+```sh
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If this machine's sandbox prevents Turbopack from binding its internal port, `npm run build -- --webpack` builds the same app successfully.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Tests execute the actual migration in an isolated Postgres-compatible PGlite database, with mocked Supabase auth identities. They cover anonymous denial, creator/voter impersonation, duplicate votes, self-votes, vote privacy, aggregate totals, immutable rows, legacy table lockdown, and generation limits. Input tests cover rejected prompts/styles, unusable AI outputs, cross-origin mutations, and New York midnight.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Manually verify against the real Supabase project:
 
-## Learn More
+1. In a logged-out/incognito window, visit `/`, `/create`, `/dashboard`, and `/profile`: content must redirect to login. API POST requests must return 401.
+2. Request a login link, open it in the same browser, generate a caption, and reload. Confirm the caption and all prompts exist in `humor_captions`.
+3. Sign in with a second account, vote, reload, and confirm the new `humor_votes` row and updated totals. A second vote and self-vote must be rejected.
+4. Sign out and verify content is inaccessible. An invalid callback displays a login error.
+5. Audit live RLS/policies after applying the migration; local tests are not proof that the migration was applied remotely.
 
-To learn more about Next.js, take a look at the following resources:
+## Vercel submission
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Commit and push to the existing GitHub repository (`zahrahusain45/humorproj1`). Its Vercel integration builds the main branch. Set the Gemini environment variable before generating captions. Confirm the deployment is Ready, turn off Vercel Deployment Protection as required by the assignment, and check incognito access to the app's own login screen.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Submit the immutable deployment URL associated with the final commit, not just `humorproj1.vercel.app`. Confirm its callback URL is allowed in Supabase. The assignment deadline is October 8, 2026, at 6:00 PM EDT.
 
-## Deploy on Vercel
+## Feedback iteration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The supplied PM feedback is implemented: email only, no profile page/avatar, images with joke captions, and login redirects. Record any additional feedback from the next Feedback Group session before submitting; that session has not been simulated.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Current external setup
+
+Implementation, migration, and automated tests are prepared locally. Do not consider the assignment deployed until the migration is applied to Supabase, a Gemini key is configured, email redirects are verified, the final commit is deployed to Vercel, and two real signed-in users complete generation/voting checks.

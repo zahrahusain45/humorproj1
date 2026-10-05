@@ -1,0 +1,50 @@
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { buildPrompt, parseCaption, systemPrompt, validateGeneration } from "@/lib/generation";
+import { isSameOrigin, readSmallJson } from "@/lib/request";
+
+export const maxDuration = 60;
+
+export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return Response.json({ error: "Request must come from this app." }, { status: 403 });
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: "Sign in to create a caption." }, { status: 401 });
+  let input: ReturnType<typeof validateGeneration>;
+  try { input = validateGeneration(await readSmallJson(request)); }
+  catch (error) { return Response.json({ error: (error as Error).message }, { status: 400 }); }
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return Response.json({ error: "Caption generation is not ready yet. Please try again later." }, { status: 503 });
+
+  // Reservation is atomic in Postgres, so parallel requests cannot bypass the daily limit.
+  const { data: requestId, error: limitError } = await supabase.rpc("reserve_humor_generation");
+  if (limitError) {
+    const limited = limitError.message.includes("daily generation limit");
+    return Response.json({ error: limited ? "You've used today's 10 generation attempts. Come back tomorrow for a new prompt." : "Caption generation is not ready yet. Please try again later." }, { status: limited ? 429 : 503 });
+  }
+  const prompt = buildPrompt(input);
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  const generationConfig = { temperature: 0.9, maxOutputTokens: 256 };
+  let caption: string;
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig }),
+      signal: AbortSignal.timeout(40000),
+      cache: "no-store",
+    });
+    if (!response.ok) return Response.json({ error: response.status === 429 ? "The AI is busy right now. Please try again shortly." : "The AI couldn't generate a caption. Please try again later." }, { status: 502 });
+    caption = parseCaption(await response.json());
+  } catch {
+    return Response.json({ error: "The AI couldn't finish this caption. Please try again." }, { status: 502 });
+  }
+  const { data, error } = await supabase.from("humor_captions").insert({
+    user_id: user.id, request_id: requestId, scene_id: input.scene.id, image_path: input.scene.image,
+    caption, user_prompt: input.prompt, prompt, system_prompt: systemPrompt, style: input.style,
+    model, generation_config: generationConfig,
+  }).select("id, caption").single();
+  if (error) return Response.json({ error: "Your caption could not be saved. Please try again later." }, { status: 500 });
+  revalidatePath("/"); revalidatePath("/dashboard");
+  return Response.json({ caption: data }, { status: 201 });
+}

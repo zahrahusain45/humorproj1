@@ -3,30 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+  const supabase = await createClient();
   const code = searchParams.get("code");
-
+  const token_hash = searchParams.get("token_hash");
   if (code) {
-    const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", user.id)
-          .single();
-
-        if (!profile?.first_name || !profile?.last_name) {
-          return NextResponse.redirect(`${origin}/profile?welcome=1`);
-        }
-      }
-      return NextResponse.redirect(`${origin}/`);
-    }
+    if (!error) return NextResponse.redirect(`${origin}/`);
+  } else if (token_hash && searchParams.get("type") === "email") {
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type: "email" });
+    if (!error) return NextResponse.redirect(`${origin}/`);
   }
-  return NextResponse.redirect(`${origin}/?error=auth`);
+  return NextResponse.redirect(`${origin}/login?error=auth`);
 }

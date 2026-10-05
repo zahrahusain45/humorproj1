@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "Humor Project",
-  description: "New movies this month",
+  description: "AI captions for campus life and New York City, rated by the community",
 };
 
 export default function RootLayout({

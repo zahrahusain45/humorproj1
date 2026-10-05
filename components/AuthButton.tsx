@@ -1,28 +1,20 @@
 "use client";
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AuthButton({ loggedIn }: { loggedIn: boolean }) {
-  const supabase = createClient();
-
-  const login = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
-  return (
-    <button
-      onClick={loggedIn ? logout : login}
-      className="w-full rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
-    >
-      {loggedIn ? "Sign out" : "Sign in with Google"}
-    </button>
-  );
+export default function AuthButton() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function logout() {
+    setBusy(true); setError("");
+    try {
+      const { error } = await createClient().auth.signOut();
+      if (error) { setError(error.message); setBusy(false); return; }
+      router.replace("/login");
+      router.refresh();
+    } catch { setError("Could not sign out. Please try again."); setBusy(false); }
+  }
+  return <div><button disabled={busy} onClick={logout} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50">{busy ? "Signing out…" : "Sign out"}</button>{error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}</div>;
 }
