@@ -34,7 +34,14 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(40000),
       cache: "no-store",
     });
-    if (!response.ok) return Response.json({ error: response.status === 429 ? "The AI is busy right now. Please try again shortly." : "The AI couldn't generate a caption. Please try again later." }, { status: 502 });
+    if (!response.ok) {
+      const failure = await response.json().catch(() => ({}));
+      const providerStatus = typeof failure.error?.status === "string" && /^[A-Z_]+$/.test(failure.error.status) ? failure.error.status : "UNKNOWN";
+      const reasons = (Array.isArray(failure.error?.details) ? failure.error.details : []).map((detail: { reason?: unknown }) => detail.reason).filter((reason: unknown) => typeof reason === "string" && /^[A-Z_]+$/.test(reason));
+      console.error("Gemini request failed", { httpStatus: response.status, providerStatus, reasons, model });
+      const error = response.status === 429 ? "The AI's usage limit has been reached. Please try again later." : response.status === 401 || response.status === 403 ? "The AI service rejected this app's credentials. The app owner needs to check the Gemini key and its permissions." : response.status === 404 ? "The configured AI model is unavailable. The app owner needs to update it." : "The AI couldn't generate a caption. Please try again later.";
+      return Response.json({ error }, { status: 502 });
+    }
     caption = parseCaption(await response.json());
   } catch {
     return Response.json({ error: "The AI couldn't finish this caption. Please try again." }, { status: 502 });
