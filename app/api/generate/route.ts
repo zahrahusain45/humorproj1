@@ -23,8 +23,8 @@ export async function POST(request: Request) {
     return Response.json({ error: limited ? "You've used today's 10 generation attempts. Come back tomorrow for a new prompt." : "Caption generation is not ready yet. Please try again later." }, { status: limited ? 429 : 503 });
   }
   const prompt = buildPrompt(input);
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-  const generationConfig = { temperature: 0.9, maxOutputTokens: 256 };
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+  const generationConfig = { temperature: 0.9, maxOutputTokens: 1024 };
   let caption: string;
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {

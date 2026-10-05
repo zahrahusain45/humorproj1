@@ -30,7 +30,7 @@ Members can read captions, insert captions only as themselves with a recent rese
 
 ## Environment and authentication
 
-Use `.env.example` as a guide, preserving your existing Supabase values. Set `GEMINI_API_KEY` in `.env.local` and Vercel Environment Variables (Production and Preview). Never prefix it with `NEXT_PUBLIC_` or commit it. `GEMINI_MODEL` defaults to `gemini-2.5-flash-lite` and can be changed to an available Gemini text model.
+Use `.env.example` as a guide, preserving your existing Supabase values. Set `GEMINI_API_KEY` in `.env.local` and Vercel Environment Variables (Production and Preview). Never prefix it with `NEXT_PUBLIC_` or commit it. `GEMINI_MODEL` defaults to `gemini-3.5-flash-lite` and can be changed to an available Gemini text model.
 
 In Supabase Authentication:
 
