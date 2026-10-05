@@ -9,8 +9,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return <main className="mx-auto max-w-md px-6 py-24 text-white">
     <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-amber-300">Humor Project</p>
     <h1 className="text-4xl font-bold">A little laugh awaits.</h1>
-    <p className="mt-4 text-zinc-400">Sign in with your email to create AI captions and rate the community’s jokes.</p>
-    {error && <p role="alert" className="mt-4 text-red-300">That sign-in link could not be verified. Request a new one below.</p>}
+    <p className="mt-4 text-zinc-400">Sign in with Google to create AI captions and rate the community’s jokes.</p>
+    {error && <p role="alert" className="mt-4 text-red-300">Sign-in could not be completed. Try Google sign-in again below.</p>}
     <LoginForm />
   </main>;
 }

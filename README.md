@@ -1,6 +1,6 @@
 # Humor Project — Assignment 4
 
-An email-only, authenticated caption app for college students navigating campus life and New York City. Choose a local illustration, describe a moment, and ask Gemini for a funny caption. Each generated caption posts to the member feed; other members can upvote or downvote it once.
+A Google-authenticated caption app for college students navigating campus life and New York City. Choose a local illustration, describe a moment, and ask Gemini for a funny caption. Each generated caption posts to the member feed; other members can upvote or downvote it once.
 
 ## Intentional product choices
 
@@ -34,11 +34,11 @@ Use `.env.example` as a guide, preserving your existing Supabase values. Set `GE
 
 In Supabase Authentication:
 
-1. Enable the Email provider and new-user signups if students should be able to join.
+1. Enable the Google provider with your existing OAuth client and allow new-user signups if students should be able to join.
 2. Set the Site URL to the production app URL.
 3. Add the production and local `/auth/callback` URLs to the allowed redirects. Add the actual commit deployment URL before testing that deployment. This local preview runs on `http://127.0.0.1:3000`, so allow `http://127.0.0.1:3000/auth/callback` as well as `http://localhost:3000/auth/callback` if you use both.
-4. Keep the default magic-link template using `{{ .ConfirmationURL }}`. A custom SSR template can instead use `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`.
-5. Open the emailed link in the same browser that requested it (PKCE flow).
+4. Keep the Supabase OAuth callback URI configured in your Google client. If the consent screen is in testing mode, add intended users as test users.
+5. Google sign-in returns to `/auth/callback`, which exchanges the PKCE code for a session.
 
 Only `/login` and `/auth/callback` are public application routes. Logged-out content requests redirect to `/login`; unauthenticated API mutations return 401. Server pages and each mutation verify the Supabase user independently. Static image assets remain public to render the interface. POST mutations require a matching Origin and a small JSON body.
 
@@ -73,7 +73,7 @@ Submit the immutable deployment URL associated with the final commit, not just `
 
 ## Feedback iteration
 
-The supplied PM feedback is implemented: email only, no profile page/avatar, images with joke captions, and login redirects. Record any additional feedback from the next Feedback Group session before submitting; that session has not been simulated.
+The supplied PM feedback is implemented: email displayed for identity, no profile page/avatar, images with joke captions, and login redirects. Record any additional feedback from the next Feedback Group session before submitting; that session has not been simulated.
 
 ## Current external setup
 
