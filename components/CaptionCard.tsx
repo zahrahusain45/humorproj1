@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getScene } from "@/lib/scenes";
 import type { FeedCaption } from "@/lib/captions";
+import DeleteCaption from "./DeleteCaption";
 import VoteButtons from "./VoteButtons";
 
 export default function CaptionCard({ caption, userId }: { caption: FeedCaption; userId: string }) {
@@ -18,6 +19,7 @@ export default function CaptionCard({ caption, userId }: { caption: FeedCaption;
     <div className="px-6 pb-6">
       <VoteButtons captionId={caption.id} initialVote={caption.myVote} own={caption.user_id === userId} upvotes={caption.upvotes} downvotes={caption.downvotes} />
       <details className="mt-4 border-t border-white/10 pt-3 text-xs text-zinc-500"><summary className="cursor-pointer">The moment behind the joke</summary><p className="mt-2 leading-relaxed text-zinc-400">{caption.user_prompt}</p></details>
+      {caption.user_id === userId && <DeleteCaption captionId={caption.id} />}
     </div>
   </article>;
 }

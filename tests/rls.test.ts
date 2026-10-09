@@ -20,6 +20,7 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
     insert into auth.users values ('${alice}'), ('${bob}'), ('${charlie}');`);
   await db.exec(await readFile(new URL("../supabase/migrations/202610050001_humor_generation_and_votes.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610050002_photo_uploads.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610080001_delete_own_captions.sql", import.meta.url), "utf8"));
   async function asUser(id: string | null) {
     await db.exec(`reset role; set role ${id ? "authenticated" : "anon"};`);
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id ?? ""]);
@@ -81,4 +82,17 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
     await db.query("select set_config('request.jwt.claim.sub', '', false)");
     await assert.rejects(() => reserve(), /Authentication required/);
   });
+  await t.test("only the creator can delete a caption, votes cascade and daily reservations remain", async () => {
+    await asUser(null);
+    await assert.rejects(() => db.query("delete from public.humor_captions"), /permission denied/);
+    await asUser(bob);
+    assert.equal((await db.query("delete from public.humor_captions where id=$1 returning id", [captionId])).rows.length, 0);
+    await asUser(alice);
+    const reservations = (await db.query("select id from public.humor_generation_requests")).rows.length;
+    assert.equal((await db.query("delete from public.humor_captions where id=$1 returning id", [captionId])).rows.length, 1);
+    assert.equal((await db.query("select id from public.humor_generation_requests")).rows.length, reservations);
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.humor_votes where caption_id=$1", [captionId])).rows.length, 0);
+  });
+
 });
