@@ -78,3 +78,7 @@ The supplied PM feedback is implemented: email displayed for identity, no profil
 ## Current external setup
 
 The migration is applied to the existing live Supabase project. All five public tables have RLS enabled; live anonymous Data API reads are denied on every table. Email signups are enabled, the production callback is allowed, and the 127.0.0.1 preview callback has been added. Automated tests and the production build pass. Deployment still needs Vercel CLI authorization, a Production GEMINI_API_KEY, the final commit deployed, and generation/voting checked with two real signed-in users. GitHub push currently fails because github.com cannot be reached, so direct Vercel CLI deployment is being prepared.
+
+## Latest PM feedback
+
+Prominent upvote/downvote buttons, Everyone/My captions/Other members feed filters, and a dedicated My captions page make creating and rating easy to find. Cards show the poster's first name for new posts and a stable member label for older ones; emails and avatars are not published. New Gemini jokes must be 10 words or fewer and focus on a specific visual detail and an unexpected punchline. An overlong answer is retried once; unsuccessful answers are not saved. Existing posts retain their original text. Daily prompts and community ranking give students a reason to return.

@@ -41,3 +41,10 @@ test("photo input validates format, bytes and size before AI submission", () => 
  const result = validateGeneration({...input, photo});
  assert.equal(result.scene.id, "upload"); assert.equal(result.photo?.url, photo);
 });
+
+test("new AI captions must be at most ten words, without cutting off a joke", () => {
+ const output = (text: string) => ({ candidates: [{finishReason: "STOP",content:{parts:[{text}]}}] });
+ assert.equal(parseCaption(output("Luxury Manhattan studio. Laundry included. Space sold separately.")), "Luxury Manhattan studio. Laundry included. Space sold separately.");
+ assert.throws(() => parseCaption(output("one two three four five six seven eight nine ten eleven")), /wrote too much/);
+ assert.equal(parseCaption(output("one two three four five six seven eight nine ten")), "one two three four five six seven eight nine ten");
+});

@@ -1,6 +1,7 @@
 export type Caption = {
   id: string;
   user_id: string;
+  author_name: string | null;
   scene_id: string;
   image_data_url: string | null;
   caption: string;

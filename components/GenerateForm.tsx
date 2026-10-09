@@ -45,13 +45,13 @@ export default function GenerateForm({ initialScene, initialPrompt }: { initialS
       <div><label htmlFor="prompt" className="mb-3 block font-semibold">2. Describe your moment</label><textarea id="prompt" required minLength={5} maxLength={500} disabled={busy} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={source === "upload" ? "What is happening in your photo?" : scene.starter} rows={4} className="w-full resize-y rounded-xl border border-white/15 bg-zinc-950 p-4 text-white focus:outline-2 focus:outline-amber-300" /><p className="mt-2 text-xs text-zinc-500">{prompt.length}/500 · This moment will appear with your caption. Keep it personal-info free.</p></div>
       <div><label htmlFor="style" className="mb-3 block font-semibold">3. Choose the vibe</label><select id="style" value={style} disabled={busy} onChange={e => setStyle(e.target.value)} className="w-full rounded-xl border border-white/15 bg-zinc-950 p-3 text-white">{styles.map(style => <option key={style}>{style}</option>)}</select></div>
       <button disabled={busy} className="w-full rounded-xl bg-amber-300 px-5 py-3 font-semibold text-black disabled:opacity-50">{busy ? "Finding the punchline…" : "Generate & post caption"}</button>
-      <p className="text-xs leading-relaxed text-zinc-500">Your selected picture description, or uploaded photo, and moment go to Google Gemini. The AI caption posts to the member feed automatically. Up to 10 attempts per day.</p>
+      <p className="text-xs leading-relaxed text-zinc-500">Your selected picture description, or uploaded photo, and moment go to Google Gemini. A short AI joke (up to 10 words) posts to the member feed automatically. Up to 10 attempts per day.</p>
       {error && <p role="alert" className="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">{error}</p>}
     </form>
     <section aria-label="Caption preview" className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 lg:sticky lg:top-8">
       <Image src={source === "upload" && photo ? photo : scene.image} alt={source === "upload" && photo ? "Your uploaded photo" : scene.alt} unoptimized={source === "upload"} width={600} height={360} className="h-auto w-full" />
       <div className="p-6"><p className="mb-3 text-xs uppercase tracking-widest text-amber-300">{result ? "Posted to the feed" : "Your caption goes here"}</p>
-        {result ? <div role="status"><p className="text-xl leading-relaxed">{result.caption}</p><Link href={`/?caption=${result.id}`} className="mt-6 inline-block font-semibold text-amber-300">See it in the feed →</Link></div> : <p className="leading-relaxed text-zinc-400">Bring the moment. AI brings the punchline. The community decides if it lands.</p>}
+        {result ? <div role="status"><p className="text-xl leading-relaxed">{result.caption}</p><Link href={`/?caption=${result.id}`} className="mt-6 inline-block font-semibold text-amber-300">See it in the feed →</Link></div> : <p className="leading-relaxed text-zinc-400">Bring the moment. AI brings a punchline in 10 words or fewer. The community decides if it lands.</p>}
       </div>
     </section>
   </div>;

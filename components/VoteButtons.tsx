@@ -18,12 +18,13 @@ export default function VoteButtons({ captionId, initialVote, own }: { captionId
     } catch { setError("Could not connect. Try again."); }
     finally { setBusy(false); }
   }
-  if (own) return <div><div className="flex gap-2"><button disabled className="vote-button">↑ Funny</button><button disabled className="vote-button">↓ Not quite</button></div><p className="mt-2 text-xs text-zinc-500">Other members can vote on your caption. You cannot vote on your own.</p></div>;
+  if (own) return <div><div className="grid grid-cols-2 gap-3"><button disabled className="vote-button">↑ Upvote · Funny</button><button disabled className="vote-button">↓ Downvote · Not quite</button></div><p className="mt-2 text-xs text-zinc-500">Other members can vote on your caption. You cannot vote on your own.</p></div>;
   const locked = busy || vote !== null;
   return <div>
-    <div className="flex flex-wrap gap-2">
-      <button disabled={locked} aria-pressed={vote === 1} onClick={() => rate(1)} className={`vote-button ${vote === 1 ? "vote-selected" : ""}`}>↑ Funny</button>
-      <button disabled={locked} aria-pressed={vote === -1} onClick={() => rate(-1)} className={`vote-button ${vote === -1 ? "vote-selected" : ""}`}>↓ Not quite</button>
+    <p className="mb-3 text-sm font-semibold text-white">Did this make you laugh?</p>
+    <div className="grid grid-cols-2 gap-3">
+      <button disabled={locked} aria-pressed={vote === 1} onClick={() => rate(1)} className={`vote-button ${vote === 1 ? "vote-selected" : ""}`}>↑ Upvote · Funny</button>
+      <button disabled={locked} aria-pressed={vote === -1} onClick={() => rate(-1)} className={`vote-button ${vote === -1 ? "vote-selected" : ""}`}>↓ Downvote · Not quite</button>
       {busy && <span role="status" className="self-center text-xs text-zinc-400">Saving…</span>}
     </div>
     {vote !== null && <p role="status" className="mt-2 text-xs text-zinc-400">Vote saved. One vote per caption.</p>}
