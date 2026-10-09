@@ -23,10 +23,19 @@ button, a, summary, input, textarea, select { -webkit-tap-highlight-color: trans
 button { cursor: pointer; }
 button:disabled { cursor: default; }
 button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid #fcd34d; outline-offset: 4px; }
-.vote-button { border: 2px solid #fcd34d; background: #fcd34d; border-radius: 12px; min-height: 56px; padding: 12px 14px; font-size: 15px; font-weight: 700; color: #171717; transition: background 150ms; }
-.vote-button:hover:not(:disabled) { background: #fde68a; }
-.vote-button:disabled { opacity: .5; }
-.vote-button.vote-selected { border-color: #fcd34d; color: #fcd34d; background: #fcd34d15; opacity: 1; }
 
-.vote-button:nth-child(2) { background: #27272a; border-color: #71717a; color: #fafafa; }
-.vote-button:nth-child(2):hover:not(:disabled) { background: #3f3f46; }
+.post-card { border: 1px solid #ffffff14; border-radius: 28px; background: linear-gradient(150deg, #1b1b21, #111115); box-shadow: 0 12px 36px #00000035; }
+.reaction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.reaction { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; min-height: 82px; padding: 16px 12px; border-radius: 20px; border: 1px solid transparent; font-weight: 700; transition: background .15s, transform .15s; }
+.reaction svg { width: 32px; height: 32px; flex-shrink: 0; }
+.reaction-label { font-size: 15px; }
+.reaction-count { padding: 3px 8px; border-radius: 8px; background: #00000015; font-size: 14px; }
+.reaction-heart { background: #fb7185; color: #291018; }
+.reaction-thumb { background: #f4f1e9; color: #24242a; }
+.reaction:hover:not(:disabled):not(.reaction-total) { transform: translateY(-2px); filter: brightness(1.08); }
+.reaction:disabled { opacity: .65; }
+.reaction.reaction-selected { opacity: 1; outline: 3px solid currentColor; outline-offset: -7px; }
+.reaction-total { background: #ffffff06; color: #a1a1aa; border-color: #ffffff0c; }
+.reaction-total.reaction-heart svg { color: #fb7185; }
+.reaction-total.reaction-thumb svg { color: #e4e4e7; }
+@media (max-width: 420px) { .reaction { gap: 7px; padding: 14px 8px; } .reaction svg { width: 28px; height: 28px; } .reaction-label { font-size: 13px; } }

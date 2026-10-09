@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function VoteButtons({ captionId, initialVote, own }: { captionId: string; initialVote: number | null; own: boolean }) {
+export default function VoteButtons({ captionId, initialVote, own, upvotes, downvotes }: { captionId: string; initialVote: number | null; own: boolean; upvotes: number; downvotes: number }) {
   const router = useRouter();
   const [vote, setVote] = useState(initialVote);
   const [busy, setBusy] = useState(false);
@@ -18,16 +18,19 @@ export default function VoteButtons({ captionId, initialVote, own }: { captionId
     } catch { setError("Could not connect. Try again."); }
     finally { setBusy(false); }
   }
-  if (own) return <div><div className="grid grid-cols-2 gap-3"><button disabled className="vote-button">↑ Upvote · Funny</button><button disabled className="vote-button">↓ Downvote · Not quite</button></div><p className="mt-2 text-xs text-zinc-500">Other members can vote on your caption. You cannot vote on your own.</p></div>;
   const locked = busy || vote !== null;
+  const reactions = [{value: 1, label: "Love it", count: upvotes, icon: "heart"}, {value: -1, label: "Not for me", count: downvotes, icon: "thumb"}];
   return <div>
-    <p className="mb-3 text-sm font-semibold text-white">Did this make you laugh?</p>
-    <div className="grid grid-cols-2 gap-3">
-      <button disabled={locked} aria-pressed={vote === 1} onClick={() => rate(1)} className={`vote-button ${vote === 1 ? "vote-selected" : ""}`}>↑ Upvote · Funny</button>
-      <button disabled={locked} aria-pressed={vote === -1} onClick={() => rate(-1)} className={`vote-button ${vote === -1 ? "vote-selected" : ""}`}>↓ Downvote · Not quite</button>
-      {busy && <span role="status" className="self-center text-xs text-zinc-400">Saving…</span>}
+    <div className="reaction-grid" aria-label={own ? "Reactions to your post" : "Rate this joke"}>
+      {reactions.map(reaction => {
+        const selected = vote === reaction.value;
+        const content = <><svg viewBox="0 0 24 24" fill={selected ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" aria-hidden="true">{reaction.icon === "heart" ? <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /> : <path d="M17 3h4v11h-4M17 4H7a3 3 0 0 0-2.9 2.2L2 13a2 2 0 0 0 2 2h5l-1 5a2 2 0 0 0 3 2l6-8V4Z" />}</svg><span className="reaction-label">{reaction.label}</span><span className="reaction-count">{reaction.count}</span></>;
+        const className = `reaction reaction-${reaction.icon} ${selected ? "reaction-selected" : ""}`;
+        return own ? <div key={reaction.value} className={`${className} reaction-total`}>{content}</div> : <button key={reaction.value} type="button" disabled={locked} aria-label={`${reaction.value === 1 ? "Upvote" : "Downvote"}: ${reaction.label}`} aria-pressed={selected} onClick={() => rate(reaction.value)} className={className}>{content}</button>;
+      })}
     </div>
-    {vote !== null && <p role="status" className="mt-2 text-xs text-zinc-400">Vote saved. One vote per caption.</p>}
-    {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
+    {busy && <p role="status" className="mt-3 text-sm text-zinc-400">Saving your reaction…</p>}
+    {vote !== null && <p role="status" className="mt-3 text-sm text-zinc-400">Your reaction is saved ✓</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
   </div>;
 }
