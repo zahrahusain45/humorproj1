@@ -19,7 +19,6 @@ export async function POST(request: Request) {
   const { data: caption, error: captionError } = await supabase.from("humor_captions").select("user_id").eq("id", body.captionId).maybeSingle();
   if (captionError) return Response.json({ error: "Votes are unavailable right now." }, { status: 503 });
   if (!caption) return Response.json({ error: "That caption no longer exists." }, { status: 404 });
-  if (caption.user_id === user.id) return Response.json({ error: "Let the community rate your caption." }, { status: 403 });
   // Every first vote creates a row. No client-supplied voter identity is trusted.
   const { error } = await supabase.from("humor_votes").insert({ caption_id: body.captionId, user_id: user.id, value: body.value });
   if (error) return Response.json({ error: error.code === "23505" ? "You've already rated this caption." : "Your vote could not be saved. Please try again." }, { status: error.code === "23505" ? 409 : 500 });

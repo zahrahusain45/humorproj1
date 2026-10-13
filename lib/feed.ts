@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Caption, FeedCaption, VoteCount } from "./captions";
 
-export async function loadFeed(userId: string, options: { mine?: boolean; others?: boolean; captionId?: string } = {}): Promise<{ captions: FeedCaption[]; error: boolean }> {
+export async function loadFeed(userId: string, options: { mine?: boolean; others?: boolean; captionId?: string; style?: string } = {}): Promise<{ captions: FeedCaption[]; error: boolean }> {
   const supabase = await createClient();
   let query = supabase.from("humor_captions").select("id,user_id,author_name:generation_config->>authorName,scene_id,image_data_url,caption,user_prompt,style,model,created_at").order("created_at", { ascending: false }).limit(60);
+  if (options.style) query = query.eq("style", options.style);
   if (options.mine) query = query.eq("user_id", userId);
   if (options.others) query = query.neq("user_id", userId);
   if (options.captionId) query = query.eq("id", options.captionId);

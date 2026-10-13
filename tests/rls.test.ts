@@ -21,6 +21,7 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
   await db.exec(await readFile(new URL("../supabase/migrations/202610050001_humor_generation_and_votes.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610050002_photo_uploads.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610080001_delete_own_captions.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610120001_allow_own_votes.sql", import.meta.url), "utf8"));
   async function asUser(id: string | null) {
     await db.exec(`reset role; set role ${id ? "authenticated" : "anon"};`);
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id ?? ""]);
@@ -48,9 +49,9 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
     await assert.rejects(() => caption(alice, request), /duplicate key/);
     await assert.rejects(() => db.query("update public.humor_captions set caption='forged'"), /permission denied/);
   });
-  await t.test("users insert exactly one vote as themselves, and cannot vote on their own caption", async () => {
+  await t.test("users insert exactly one vote as themselves, including their own caption", async () => {
     await asUser(alice);
-    await assert.rejects(() => db.query("insert into public.humor_votes(caption_id,user_id,value) values($1,$2,1)", [captionId, alice]), /row-level security/);
+    await db.query("insert into public.humor_votes(caption_id,user_id,value) values($1,$2,1)", [captionId, alice]);
     await asUser(bob);
     await assert.rejects(() => db.query("insert into public.humor_votes(caption_id,user_id,value) values($1,$2,1)", [captionId, charlie]), /row-level security/);
     await db.query("insert into public.humor_votes(caption_id,user_id,value) values($1,$2,1)", [captionId, bob]);
@@ -62,12 +63,12 @@ test("Postgres enforces identity, private votes, single votes, daily limits, and
     await asUser(charlie);
     assert.equal((await db.query("select * from public.humor_votes")).rows.length, 0);
     const counts = (await db.query<{ upvotes: number; downvotes: number }>("select * from public.humor_vote_counts(array[$1::uuid])", [captionId])).rows[0];
-    assert.equal(Number(counts.upvotes), 1); assert.equal(Number(counts.downvotes), 0);
+    assert.equal(Number(counts.upvotes), 2); assert.equal(Number(counts.downvotes), 0);
     await db.query("insert into public.humor_votes(caption_id,user_id,value) values($1,$2,-1)", [captionId, charlie]);
     await asUser(alice);
-    assert.equal((await db.query("select * from public.humor_votes")).rows.length, 0);
+    assert.equal((await db.query("select * from public.humor_votes")).rows.length, 1);
     const totals = (await db.query<{ upvotes: number; downvotes: number }>("select * from public.humor_vote_counts(array[$1::uuid])", [captionId])).rows[0];
-    assert.equal(Number(totals.upvotes), 1); assert.equal(Number(totals.downvotes), 1);
+    assert.equal(Number(totals.upvotes), 2); assert.equal(Number(totals.downvotes), 1);
   });
   await t.test("daily limit and reservation ownership are enforced in the database", async () => {
     await asUser(bob);
