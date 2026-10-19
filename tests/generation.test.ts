@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildPrompt, parseCaption, validateGeneration } from "../lib/generation";
+import { buildPrompt, parseCaption, validateGeneration, validatePhotoGeneration } from "../lib/generation";
 import { getDailyPrompt } from "../lib/scenes";
 import { isSameOrigin, readSmallJson } from "../lib/request";
 
@@ -47,4 +47,11 @@ test("new AI captions must be at most ten words, without cutting off a joke", ()
  assert.equal(parseCaption(output("Luxury Manhattan studio. Laundry included. Space sold separately.")), "Luxury Manhattan studio. Laundry included. Space sold separately.");
  assert.throws(() => parseCaption(output("one two three four five six seven eight nine ten eleven")), /wrote too much/);
  assert.equal(parseCaption(output("one two three four five six seven eight nine ten")), "one two three four five six seven eight nine ten");
+});
+
+test("new posts require a real photo and cannot fall back to preset pictures", () => {
+  assert.throws(() => validatePhotoGeneration({ sceneId: "subway", prompt: "A subway delay", style: "Deadpan" }), /Upload a photo/);
+  assert.throws(() => validatePhotoGeneration({ photo: "https://example.com/photo.jpg", prompt: "A subway delay", style: "Deadpan" }));
+  const photo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=";
+  assert.equal(validatePhotoGeneration({ photo, prompt: "A real moment", style: "Deadpan" }).scene.id, "upload");
 });

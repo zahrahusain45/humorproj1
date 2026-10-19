@@ -1,11 +1,7 @@
-import { requireUser } from "@/lib/auth";
-import { getDailyPrompt, getScene } from "@/lib/scenes";
-import GenerateForm from "@/components/GenerateForm";
-
-export default async function CreatePage({ searchParams }: { searchParams: Promise<{ daily?: string }> }) {
-  await requireUser();
-  const { daily } = await searchParams;
-  const challenge = getDailyPrompt();
-  const scene = getScene(challenge.sceneId)!;
-  return <main className="mx-auto max-w-5xl px-6 py-12 text-white"><p className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">Make the group chat laugh</p><h1 className="text-4xl font-bold tracking-tight">Your moment. AI’s punchline.</h1><p className="mb-10 mt-4 max-w-xl text-zinc-400">Turn campus chaos and NYC culture shock into a caption worth sharing.</p><GenerateForm initialScene={daily === "1" ? challenge.sceneId : "subway"} initialPrompt={daily === "1" ? challenge.prompt : scene.id === "subway" ? scene.starter : ""} /></main>;
+import {requireUser} from '@/lib/auth';
+import {getDailyPrompt} from '@/lib/scenes';
+import GenerateForm from '@/components/GenerateForm';
+export default async function CreatePage({searchParams}:{searchParams:Promise<{daily?:string}>}){
+ await requireUser();const {daily}=await searchParams;
+ return <main className="mx-auto max-w-5xl px-6 py-12"><p className="mb-3 text-xs font-semibold uppercase tracking-widest text-rose-700">A tiny moment, a little main-character energy</p><h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Your photo. A fresh punchline.</h1><p className="mb-10 mt-4 max-w-xl text-[#875e74]">Upload a photo, pick your vibe, and let AI find the funny in 10 words or fewer.</p><GenerateForm initialPrompt={daily==='1'?getDailyPrompt().prompt:''}/></main>;
 }

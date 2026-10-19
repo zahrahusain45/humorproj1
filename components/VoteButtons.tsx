@@ -31,8 +31,8 @@ export default function VoteButtons({ captionId, initialVote, upvotes, downvotes
         return <button key={reaction.value} type="button" disabled={locked} aria-label={`${reaction.value === 1 ? "Upvote" : "Downvote"}: ${reaction.label}`} aria-pressed={selected} onClick={() => rate(reaction.value)} className={className}>{content}</button>;
       })}
     </div>
-    {busy && <p role="status" className="mt-3 text-sm text-zinc-400">Saving your reaction…</p>}
-    {saved && <p role="status" className="mt-3 text-sm text-zinc-400">Your reaction is saved ✓</p>}
-    {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
+    {busy && <p role="status" className="mt-3 text-sm text-[#875e74]">Saving your reaction…</p>}
+    {saved && <p role="status" className="mt-3 text-sm text-[#875e74]">Your reaction is saved ✓</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
   </div>;
 }

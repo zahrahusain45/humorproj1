@@ -21,7 +21,7 @@ export default function LoginForm() {
     }
   }
   return <div className="mt-8 space-y-4">
-    <button type="button" onClick={signIn} disabled={busy} className="w-full rounded-xl bg-amber-300 px-4 py-3 font-semibold text-black disabled:opacity-50">{busy ? "Connecting…" : "Continue with Google"}</button>
-    {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+    <button type="button" onClick={signIn} disabled={busy} className="w-full rounded-xl bg-rose-600 px-4 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Connecting…" : "Continue with Google"}</button>
+    {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
   </div>;
 }

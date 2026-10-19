@@ -38,3 +38,9 @@ export function parseCaption(response: unknown) {
   if (text.split(/\s+/u).length > 10) throw new Error("The AI wrote too much. Please try another moment.");
   return text;
 }
+
+// Public creation flow accepts only an uploaded photo; preset scenes remain for legacy posts.
+export function validatePhotoGeneration(input: unknown) {
+  if (!input || typeof input !== "object" || !("photo" in input) || typeof input.photo !== "string") throw new Error("Upload a photo first.");
+  return validateGeneration(input);
+}

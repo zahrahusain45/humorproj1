@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { buildPrompt, parseCaption, systemPrompt, validateGeneration } from "@/lib/generation";
+import { buildPrompt, parseCaption, systemPrompt, validatePhotoGeneration } from "@/lib/generation";
 import { isSameOrigin, readSmallJson } from "@/lib/request";
 
 export const maxDuration = 60;
@@ -10,8 +10,8 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in to create a caption." }, { status: 401 });
-  let input: ReturnType<typeof validateGeneration>;
-  try { input = validateGeneration(await readSmallJson(request, 1404096)); }
+  let input: ReturnType<typeof validatePhotoGeneration>;
+  try { input = validatePhotoGeneration(await readSmallJson(request, 1404096)); }
   catch (error) { return Response.json({ error: (error as Error).message }, { status: 400 }); }
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return Response.json({ error: "Caption generation is not ready yet. Please try again later." }, { status: 503 });

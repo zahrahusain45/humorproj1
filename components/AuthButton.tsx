@@ -16,5 +16,5 @@ export default function AuthButton() {
       router.refresh();
     } catch { setError("Could not sign out. Please try again."); setBusy(false); }
   }
-  return <div><button disabled={busy} onClick={logout} className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50">{busy ? "Signing out…" : "Sign out"}</button>{error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}</div>;
+  return <div><button disabled={busy} onClick={logout} className="soft-button rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? "Signing out…" : "Sign out"}</button>{error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}</div>;
 }
