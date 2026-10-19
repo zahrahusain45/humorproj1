@@ -18,7 +18,7 @@ export default function DeleteCaption({ captionId, compact = false }: { captionI
     } catch { setError("Could not confirm deletion. Check your captions before retrying."); }
     finally { setBusy(false); }
   }
-  return <div className={compact ? "post-delete" : "mt-4 border-t border-pink-200 pt-4"}>
+  return <div className={compact ? `post-delete ${confirming ? "is-confirming" : ""}` : "mt-4 border-t border-pink-200 pt-4"}>
     {confirming ? <div className="rounded-xl border border-rose-400/20 bg-rose-600/5 p-4">
       <p className="text-sm font-semibold text-rose-950">Delete this caption?</p>
       <p className="mt-2 text-xs leading-relaxed text-[#875e74]">This permanently removes the post, its photo, and its votes. This cannot be undone.</p>

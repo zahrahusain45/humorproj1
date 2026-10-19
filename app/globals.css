@@ -14,3 +14,5 @@
 @media(min-width:1100px){.post-picture img{height:185px}}@media(max-width:639px){.caption-feed{gap:16px}.post-picture img{height:210px}.post-joke-text{font-size:17px}.post-body{padding:14px 16px}.post-author{padding:13px 16px 11px}.compact-post .reaction{min-height:44px}.post-context summary{min-height:30px}.post-author>p{font-size:12px}}
 
 .post-delete{margin-top:8px}.post-delete>button{font-size:10px;color:#a4758f;min-height:25px}.post-delete>button svg{width:12px;height:12px}.post-delete>div{margin-top:4px}.post-delete [role='alert']{font-size:11px}
+
+.post-secondary{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 14px;margin-top:10px;padding-top:8px;border-top:1px solid #fae5ee}.post-secondary .post-context{flex:1;min-width:110px;border:0;margin:0;padding:0}.post-secondary .post-context summary{min-height:28px}.post-secondary .post-delete{margin:0}.post-secondary .post-delete>button{min-height:28px;font-size:9px}.post-secondary .post-delete.is-confirming{flex-basis:100%;width:100%}
